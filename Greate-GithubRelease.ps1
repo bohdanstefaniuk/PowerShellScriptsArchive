@@ -8,8 +8,22 @@ param (
 	[string]$password                           # Github password
 )
 
+$CurrentDirectory = $PSScriptRoot
+
+function Get-AssetName {
+	return $assetFileNamePrefix + $version + ".zip";
+}
+
+function Get-BasicAuthToken {
+	$Text = $userName + ":" + $password
+	$Bytes = [System.Text.Encoding]::ASCII.GetBytes($Text)
+	$EncodedText =[Convert]::ToBase64String($Bytes)
+	return "Basic " + $EncodedText;
+}
+
 $AssetFileName = Get-AssetName
-$AssetSourcePath = Join-Path -Path $CurrentDirectory -ChildPath ($assetPath + "\*")
+$AssetSourcePath = Join-Path -Path $CurrentDirectory -ChildPath $assetPath
+$AssetSourcePath = $AssetSourcePath + "\*"
 $AssetZipPath = Join-Path -Path $CurrentDirectory -ChildPath $assetFileName
 
 # URL
@@ -40,19 +54,8 @@ $CreateReleaseBody = "
 	""prerelease"": false
 }"
 
-function Get-AssetName {
-	return $assetFileNamePrefix + $version + ".zip";
-}
-
 function Create-AssetZip {
 	Compress-Archive -Path $AssetSourcePath -DestinationPath $AssetZipPath
-}
-
-function Get-BasicAuthToken {
-	$Text = $userName + ":" + $password
-	$Bytes = [System.Text.Encoding]::ASCII.GetBytes($Text)
-	$EncodedText =[Convert]::ToBase64String($Bytes)
-	return "Basic " + $EncodedText;
 }
 
 function Get-CorrectUploadUrl {
